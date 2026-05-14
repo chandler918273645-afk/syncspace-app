@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SyncSpace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+    </script>
+    <style>
+        :root { color-scheme: light dark; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.8); }
+
+        /* Cam Efekti: Hem aydınlık hem karanlık temada iyi görünmesi için revize edildi */
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans p-4 min-h-screen relative overflow-x-hidden transition-colors duration-300">
+
+    <div id="top-nav" class="hidden w-full max-w-[1400px] mx-auto items-center justify-between pb-6 relative z-40">
+        <div class="flex-1 sm:hidden">
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-cyan-400 dark:to-blue-400">SyncSpace</h1>
+        </div>
+        
+        <div class="hidden sm:block flex-1"></div> <div class="hidden sm:flex justify-center absolute left-1/2 transform -translate-x-1/2">
+            <h1 class="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-cyan-400 dark:to-blue-400">SyncSpace</h1>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 flex-1">
+            <button onclick="temaDegistir()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition shadow-sm border border-slate-200 dark:border-slate-700 text-lg">
+                <span id="tema-icon">🌙</span>
+            </button>
+            <button onclick="cikisYap()" class="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-full font-bold shadow-sm transition transform hover:scale-105">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span class="hidden sm:inline">Çıkış</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+        <div class="glass-panel bg-white/95 dark:bg-slate-800/95 p-6 rounded-2xl max-w-sm w-full text-center border border-slate-200 dark:border-slate-700 transform scale-95 transition-transform duration-300" id="modal-box">
+            <div class="w-16 h-16 bg-rose-100 dark:bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Emin misin?</h3>
+            <p id="modal-text" class="text-slate-600 dark:text-slate-400 mb-6 text-sm"></p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="kapatModal()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white px-5 py-2 rounded-lg font-bold transition">İptal</button>
+                <button id="modal-onay-btn" class="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2 rounded-lg font-bold shadow transition">Kaldır</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-screen" class="max-w-md mx-auto glass-panel bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 mt-16 transform transition-all duration-500 shadow-xl">
+        <div class="flex justify-center mb-6">
+            <div class="w-16 h-16 bg-gradient-to-tr from-cyan-500 to-blue-500 rounded-2xl rotate-12 flex items-center justify-center shadow-lg">
+                <svg class="w-8 h-8 text-white -rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+        </div>
+        <h1 class="text-3xl font-black text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-cyan-400 dark:to-blue-400">SyncSpace</h1>
+        
+        <input type="text" id="kullanici_adi" placeholder="Kullanıcı Adı" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-3 rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition">
+        <input type="password" id="sifre" placeholder="Şifre" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-3 rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition">
+        
+        <label class="flex items-center text-slate-600 dark:text-slate-400 text-sm mb-6 cursor-pointer select-none">
+            <input type="checkbox" id="beni_hatirla" class="w-4 h-4 mr-2 rounded border-slate-300 text-blue-500 focus:ring-blue-500 bg-white dark:bg-slate-900">
+            Beni Hatırla
+        </label>
+        
+        <button onclick="girisYap()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl font-bold shadow-md transform transition hover:-translate-y-0.5">Giriş Yap / Kayıt Ol</button>
+    </div>
+
+    <div id="main-screen" class="hidden flex flex-col lg:flex-row gap-6 max-w-[1400px] mx-auto pb-24">
+        
+        <div class="flex-1 space-y-6">
+            
+            <div class="glass-panel bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                <h2 class="font-bold mb-4 text-xl text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Yeni Plan Ekle
+                </h2>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Plan İsmi</label>
+                        <input type="text" id="plan_isim" placeholder="Örn: Halı Saha" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Tarih</label>
+                        <input type="date" id="tarih" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-1/2 md:w-28">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Başlangıç</label>
+                            <input type="time" id="baslangic" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        </div>
+                        <div class="w-1/2 md:w-28">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Bitiş</label>
+                            <input type="time" id="bitis" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        </div>
+                    </div>
+                    <div class="w-full md:w-auto flex items-end mt-2 md:mt-0">
+                        <button onclick="planEkle()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 h-[46px] rounded-xl font-bold shadow-md transition transform hover:-translate-y-0.5">İşle</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="ayDegistir(-1)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-slate-600 dark:text-slate-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h2 id="takvim-ay-yil" class="font-extrabold text-xl sm:text-2xl tracking-wide text-slate-800 dark:text-slate-100"></h2>
+                    <button onclick="ayDegistir(1)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-slate-600 dark:text-slate-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-[1px] bg-slate-200 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700/50 rounded-xl overflow-hidden">
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-[400px]">
+            <div class="glass-panel bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 sm:p-6 shadow-sm relative h-full">
+                <div class="absolute bottom-0 right-0 w-40 h-40 bg-cyan-500/5 dark:bg-cyan-500/10 rounded-full blur-3xl -mr-10 -mb-10 pointer-events-none"></div>
+                
+                <h2 class="font-bold text-xl mb-6 text-cyan-600 dark:text-cyan-400 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    Yapay Zeka Eşleştirici
+                </h2>
+                
+                <div class="space-y-4 relative z-10">
+                    
+                    <div class="relative" id="arama_alani">
+                        <div id="secilen_arkadaslar" class="flex flex-wrap gap-2 mb-2 empty:mb-0"></div>
+                        <input type="text" id="arkadas_arama" placeholder="Kiminle plan yapacaksın? (İsim yaz)" 
+                               class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                               onkeyup="arkadasFiltrele()" onfocus="arkadasFiltrele()" autocomplete="off">
+                        
+                        <ul id="arkadas_onerileri" class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden max-h-40 overflow-y-auto"></ul>
+                    </div>
+                    
+                    <select id="gun_tipi" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition" onchange="filtreKontrol()">
+                        <option value="belirli_gun">Belirli Bir Gün</option>
+                        <option value="herhangi">Herhangi Bir Gün</option>
+                        <option value="hafta_ici">Tüm Hafta İçi</option>
+                        <option value="hafta_sonu">Tüm Hafta Sonu</option>
+                    </select>
+
+                    <select id="zaman_dilimi" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition" onchange="filtreKontrol()">
+                        <option value="tum_gun">Tüm Gün (09:00 - 23:00)</option>
+                        <option value="sabah">Sabah (09:00 - 12:00)</option>
+                        <option value="oglen">Öğleden Sonra (12:00 - 18:00)</option>
+                        <option value="aksam">Akşam (18:00 - 23:00)</option>
+                        <option value="ozel">Belirli Saat Aralığı</option>
+                    </select>
+
+                    <div id="ozel_saat_alani" class="flex gap-4 hidden">
+                        <div class="w-1/2">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Arama Başlangıç</label>
+                            <input type="time" id="ozel_bas" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition" value="14:00">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Arama Bitiş</label>
+                            <input type="time" id="ozel_bit" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition" value="16:00">
+                        </div>
+                    </div>
+                    
+                    <input type="date" id="sorgu_tarih" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition">
+                    
+                    <button onclick="ortakSaatBul()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white p-4 rounded-xl font-bold shadow-md transition transform hover:-translate-y-0.5 sm:text-lg">Zamanı Bul</button>
+                </div>
+
+                <div id="sonuc" class="mt-6 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl hidden relative z-10 max-h-[300px] overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="float-tab" class="fixed bottom-24 right-4 sm:right-6 w-[300px] sm:w-80 glass-panel bg-white/95 dark:bg-slate-800/95 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-2xl z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 hidden">
+        <h2 class="font-bold mb-4 text-lg text-indigo-600 dark:text-indigo-400 border-b border-slate-200 dark:border-slate-700 pb-2">Arkadaşlar</h2>
+        
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="yeni_arkadas" placeholder="Kullanıcı Adı" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm outline-none transition">
+            <button onclick="istekGonder()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold shadow transition">Ekle</button>
+        </div>
+        
+        <div id="istekler-alani" class="mb-4 hidden">
+            <h3 class="text-xs font-bold text-pink-600 dark:text-pink-400 uppercase tracking-wider mb-2">Gelen İstekler</h3>
+            <ul id="istek-listesi" class="space-y-2"></ul>
+        </div>
+
+        <h3 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Arkadaşlarım</h3>
+        <ul id="arkadas-listesi" class="max-h-40 overflow-y-auto space-y-2 pr-1"></ul>
+    </div>
+
+    <button onclick="toggleFloatTab()" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 group hidden" id="fab-btn">
+        <svg class="w-6 h-6 text-white group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <div id="istek-bildirim" class="absolute top-0 right-0 w-3.5 h-3.5 bg-rose-500 rounded-full hidden border-2 border-white dark:border-slate-900"></div>
+    </button>
+
+    <script>
+        let tumPlanlar = [];
+        let seciliTarih = new Date();
+        const bugunTarih = new Date();
+        
+        let tumArkadaslar = [];
+        let secilenArkadaslar = [];
+
+        // TEMA YÖNETİMİ
+        let isDark = true;
+        function temaDegistir() {
+            const html = document.documentElement;
+            isDark = !isDark;
+            if(isDark) {
+                html.classList.add('dark');
+                document.getElementById('tema-icon').textContent = '🌙';
+            } else {
+                html.classList.remove('dark');
+                document.getElementById('tema-icon').textContent = '☀️';
+            }
+            localStorage.setItem('tema', isDark ? 'dark' : 'light');
+        }
+
+        window.onload = function() {
+            if(localStorage.getItem('tema') === 'light') temaDegistir();
+            fetch('/oturum_kontrol').then(res => res.json()).then(data => {
+                if(data.durum === 'ok') { ekranaGec(); }
+            });
+        }
+
+        function cikisYap() {
+            fetch('/cikis_yap', { method: 'POST' }).then(() => location.reload());
+        }
+
+        function girisYap() {
+            fetch('/kayit_veya_giris', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    kullanici_adi: document.getElementById('kullanici_adi').value,
+                    sifre: document.getElementById('sifre').value,
+                    beni_hatirla: document.getElementById('beni_hatirla').checked
+                })
+            }).then(res => res.json()).then(data => {
+                if(data.durum === 'ok') { ekranaGec(); } else { alert(data.mesaj); }
+            });
+        }
+
+        function ekranaGec() {
+            document.getElementById('login-screen').classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-screen').classList.remove('hidden');
+                document.getElementById('top-nav').classList.remove('hidden');
+                document.getElementById('top-nav').classList.add('flex');
+                document.getElementById('fab-btn').classList.remove('hidden');
+                takvimGetir();
+                arkadaslariGetir();
+                istekleriGetir();
+            }, 300);
+        }
+
+        // --- FLOAT TAB VE MODAL ---
+        let floatAcik = false;
+        function toggleFloatTab() {
+            const tab = document.getElementById('float-tab');
+            if(!floatAcik) {
+                tab.classList.remove('hidden');
+                setTimeout(() => { tab.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none'); }, 10);
+            } else {
+                tab.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+                setTimeout(() => { tab.classList.add('hidden'); }, 300);
+            }
+            floatAcik = !floatAcik;
+        }
+
+        let silinecekArkadas = "";
+        function arkadasSilModalAc(arkadas_adi) {
+            silinecekArkadas = arkadas_adi;
+            document.getElementById('modal-text').innerHTML = `<span class="text-slate-800 dark:text-white font-bold">${arkadas_adi}</span> isimli kullanıcıyı listenden kaldırmak istediğine emin misin?`;
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+        }
+
+        function kapatModal() {
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-box');
+            modal.classList.add('opacity-0'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+        }
+
+        document.getElementById('modal-onay-btn').addEventListener('click', function() {
+            fetch('/arkadas_sil', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ arkadas_adi: silinecekArkadas })
+            }).then(res => res.json()).then(data => { 
+                kapatModal(); arkadaslariGetir();
+                arkadasCikarListeden(silinecekArkadas);
+            });
+        });
+
+        // --- ARKADAŞLIK FONKSİYONLARI ---
+        function istekGonder() {
+            fetch('/istek_gonder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ arkadas_adi: document.getElementById('yeni_arkadas').value })
+            }).then(res => res.json()).then(data => { alert(data.mesaj); document.getElementById('yeni_arkadas').value=''; });
+        }
+
+        function istekleriGetir() {
+            fetch('/istekleri_getir').then(res => res.json()).then(data => {
+                const alan = document.getElementById('istekler-alani');
+                const liste = document.getElementById('istek-listesi');
+                const bildirim = document.getElementById('istek-bildirim');
+                liste.innerHTML = '';
+                
+                if(data.istekler.length > 0) {
+                    alan.classList.remove('hidden');
+                    bildirim.classList.remove('hidden');
+                    data.istekler.forEach(gonderen => {
+                        let li = document.createElement('li');
+                        li.className = "flex justify-between items-center bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 p-2 rounded-xl font-semibold text-slate-800 dark:text-slate-200 text-sm";
+                        li.innerHTML = `<span>${gonderen}</span> 
+                                        <div class="flex gap-1">
+                                            <button onclick="istekCevapla('${gonderen}', 'kabul')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-xs transition">✔</button>
+                                            <button onclick="istekCevapla('${gonderen}', 'red')" class="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg text-xs transition">✖</button>
+                                        </div>`;
+                        liste.appendChild(li);
+                    });
+                } else { 
+                    alan.classList.add('hidden'); 
+                    bildirim.classList.add('hidden'); 
+                }
+            });
+        }
+
+        function istekCevapla(gonderen, islem) {
+            fetch('/istek_cevapla', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gonderen: gonderen, islem: islem }) })
+            .then(res => res.json()).then(data => { istekleriGetir(); arkadaslariGetir(); });
+        }
+
+        function arkadaslariGetir() {
+            fetch('/arkadaslari_getir').then(res => res.json()).then(data => {
+                tumArkadaslar = data.arkadaslar;
+                const liste = document.getElementById('arkadas-listesi');
+                liste.innerHTML = '';
+                if(data.arkadaslar.length === 0) {
+                    liste.innerHTML = '<li class="text-slate-500 italic text-center py-2 text-sm">Listen boş.</li>';
+                } else {
+                    data.arkadaslar.forEach(ark => {
+                        let li = document.createElement('li');
+                        li.className = "flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700 rounded-xl group";
+                        li.innerHTML = `<span class="font-semibold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400"></div>${ark}</span> 
+                                        <button onclick="arkadasSilModalAc('${ark}')" class="text-xs font-bold text-rose-500 opacity-0 group-hover:opacity-100 transition duration-300">Kaldır</button>`;
+                        liste.appendChild(li);
+                    });
+                }
+            });
+        }
+
+        // --- AUTO-COMPLETE VE ÇOKLU SEÇİM ---
+        function arkadasFiltrele() {
+            const val = document.getElementById('arkadas_arama').value.toLowerCase();
+            const liste = document.getElementById('arkadas_onerileri');
+            liste.innerHTML = '';
+            
+            const filtrelenmis = tumArkadaslar.filter(a => a.toLowerCase().includes(val) && !secilenArkadaslar.includes(a));
+            
+            if (filtrelenmis.length > 0) {
+                filtrelenmis.forEach(a => {
+                    let li = document.createElement('li');
+                    li.className = "p-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-800 dark:text-white border-b last:border-0 border-slate-100 dark:border-slate-700 transition";
+                    li.textContent = a;
+                    li.onclick = () => arkadasEkleListeye(a);
+                    liste.appendChild(li);
+                });
+                liste.classList.remove('hidden');
+            } else {
+                liste.classList.add('hidden');
+            }
+        }
+
+        function arkadasEkleListeye(ark) {
+            secilenArkadaslar.push(ark);
+            document.getElementById('arkadas_arama').value = '';
+            document.getElementById('arkadas_onerileri').classList.add('hidden');
+            renderSecilenArkadaslar();
+        }
+
+        function arkadasCikarListeden(ark) {
+            secilenArkadaslar = secilenArkadaslar.filter(a => a !== ark);
+            renderSecilenArkadaslar();
+            document.getElementById('arkadas_arama').focus();
+        }
+
+        function renderSecilenArkadaslar() {
+            const div = document.getElementById('secilen_arkadaslar');
+            div.innerHTML = '';
+            secilenArkadaslar.forEach(a => {
+                let span = document.createElement('span');
+                span.className = "bg-cyan-600 text-white px-2.5 py-1 rounded-lg text-sm flex items-center gap-2 shadow-sm font-semibold";
+                span.innerHTML = `${a} <button onclick="arkadasCikarListeden('${a}')" class="text-white hover:text-cyan-200 font-bold ml-1 transition">×</button>`;
+                div.appendChild(span);
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            const aramaAlani = document.getElementById('arama_alani');
+            const oneriListesi = document.getElementById('arkadas_onerileri');
+            if (aramaAlani && !aramaAlani.contains(e.target)) {
+                oneriListesi.classList.add('hidden');
+            }
+        });
+
+        // --- TAKVİM FONKSİYONLARI ---
+        function planEkle() {
+            const isim = document.getElementById('plan_isim').value || "Plan";
+            fetch('/plan_ekle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    isim: isim,
+                    tarih: document.getElementById('tarih').value,
+                    baslangic: document.getElementById('baslangic').value,
+                    bitis: document.getElementById('bitis').value
+                })
+            }).then(res => res.json()).then(data => {
+                takvimGetir();
+                document.getElementById('plan_isim').value='';
+                document.getElementById('baslangic').value='';
+                document.getElementById('bitis').value='';
+            });
+        }
+
+        function takvimGetir() {
+            fetch('/takvim_getir').then(res => res.json()).then(data => { tumPlanlar = data.planlar; takvimiCiz(); });
+        }
+
+        function ayDegistir(yon) { seciliTarih.setMonth(seciliTarih.getMonth() + yon); takvimiCiz(); }
+
+        function takvimiCiz() {
+            const calGrid = document.getElementById('calendar-grid');
+            calGrid.innerHTML = '';
+            
+            let yil = seciliTarih.getFullYear();
+            let ay = seciliTarih.getMonth();
+            const aylarStr = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+            document.getElementById('takvim-ay-yil').textContent = `${aylarStr[ay]} ${yil}`;
+
+            const gunler = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+            gunler.forEach(g => {
+                let div = document.createElement('div');
+                div.className = 'bg-slate-100 dark:bg-slate-800 font-bold text-xs py-3 text-slate-600 dark:text-slate-400 tracking-wider text-center uppercase';
+                div.textContent = g;
+                calGrid.appendChild(div);
+            });
+
+            let ilkGun = new Date(yil, ay, 1).getDay();
+            ilkGun = ilkGun === 0 ? 6 : ilkGun - 1;
+            let aydakiGunSayisi = new Date(yil, ay + 1, 0).getDate();
+
+            for(let i = 0; i < ilkGun; i++) {
+                let bos = document.createElement('div');
+                bos.className = 'bg-slate-50 dark:bg-slate-800/50 min-h-[80px] sm:min-h-[100px] lg:min-h-[120px]';
+                calGrid.appendChild(bos);
+            }
+
+            for(let i = 1; i <= aydakiGunSayisi; i++) {
+                let gunKutusu = document.createElement('div');
+                gunKutusu.className = 'bg-white dark:bg-slate-800 p-1.5 flex flex-col items-center min-h-[80px] sm:min-h-[100px] lg:min-h-[120px] hover:bg-slate-50 dark:hover:bg-slate-700 transition relative group';
+                
+                let tarihNumara = document.createElement('div');
+                
+                // YENİ BUGÜN VURGUSU: Sadece numarayı yuvarlak içine alıyor
+                if(yil === bugunTarih.getFullYear() && ay === bugunTarih.getMonth() && i === bugunTarih.getDate()) {
+                    tarihNumara.className = 'text-xs font-bold w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center ml-auto shadow-md mb-1';
+                } else {
+                    tarihNumara.className = 'text-xs font-bold w-full text-right mb-1 transition text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white';
+                }
+                
+                tarihNumara.textContent = i;
+                gunKutusu.appendChild(tarihNumara);
+
+                let tarihStr = `${yil}-${String(ay+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                let buGununPlanlari = tumPlanlar.filter(p => p.tarih === tarihStr);
+                
+                buGununPlanlari.forEach(p => {
+                    let planEtiket = document.createElement('div');
+                    planEtiket.className = 'text-[10px] w-full text-center rounded-lg p-1 mb-1 leading-tight shadow-sm bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-100 border border-blue-200 dark:border-blue-500/30';
+                    planEtiket.innerHTML = `<span class="block font-bold truncate w-full" title="${p.isim}">${p.isim}</span><span class="opacity-80 text-[9px]">${p.baslangic}-${p.bitis}</span>`;
+                    gunKutusu.appendChild(planEtiket);
+                });
+                calGrid.appendChild(gunKutusu);
+            }
+        }
+
+        function filtreKontrol() {
+            const tip = document.getElementById('gun_tipi').value;
+            const dilim = document.getElementById('zaman_dilimi').value;
+            const tarihInput = document.getElementById('sorgu_tarih');
+            const ozelSaatAlani = document.getElementById('ozel_saat_alani');
+
+            if (tip !== 'belirli_gun') tarihInput.classList.add('hidden');
+            else tarihInput.classList.remove('hidden');
+
+            if (dilim === 'ozel') ozelSaatAlani.classList.remove('hidden');
+            else ozelSaatAlani.classList.add('hidden');
+        }
+
+        function ortakSaatBul() {
+            const veri = {
+                arkadas_listesi: secilenArkadaslar,
+                gun_tipi: document.getElementById('gun_tipi').value,
+                zaman_dilimi: document.getElementById('zaman_dilimi').value,
+                tarih: document.getElementById('sorgu_tarih').value,
+                ozel_bas: document.getElementById('ozel_bas').value,
+                ozel_bit: document.getElementById('ozel_bit').value
+            };
+
+            const buton = event.target;
+            buton.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+
+            fetch('/ortak_saat_bul', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(veri)
+            }).then(res => res.json()).then(data => {
+                buton.innerHTML = 'Zamanı Bul';
+                const sonucDiv = document.getElementById('sonuc');
+                sonucDiv.innerHTML = '';
+                
+                if(data.sonuclar && data.sonuclar.length === 0) {
+                    sonucDiv.innerHTML = `<div class="text-sm flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold bg-rose-100 dark:bg-rose-500/10 p-4 rounded-xl border border-rose-200 dark:border-rose-500/20">${data.mesaj || "Maalesef ortak vakit yok."}</div>`;
+                } else if (data.sonuclar) {
+                    let baslik = document.createElement('h3');
+                    baslik.className = "text-xs text-cyan-600 dark:text-cyan-400 font-bold uppercase tracking-wider mb-3 border-b border-cyan-200 dark:border-cyan-500/30 pb-2";
+                    baslik.textContent = "Uygun Zaman Dilimleri";
+                    sonucDiv.appendChild(baslik);
+
+                    data.sonuclar.forEach(gun => {
+                        let div = document.createElement('div');
+                        div.className = "mb-2 flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm";
+                        div.innerHTML = `<div class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1 sm:mb-0">${gun.tarih}</div>
+                                         <div class="text-xs font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-100 dark:bg-cyan-900/50 px-3 py-1.5 rounded-lg border border-cyan-200 dark:border-cyan-500/30">${gun.saatler}</div>`;
+                        sonucDiv.appendChild(div);
+                    });
+                }
+                sonucDiv.classList.remove('hidden');
+                sonucDiv.classList.add('animate-fade-in');
+            });
+        }
+    </script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    </style>
+</body>
+</html>
